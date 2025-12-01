@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ColorOS 16 便签系统</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-sticky-note"></i>
+                </div>
+                <div class="logo-text">
+                    <h1>ColorOS 便签</h1>
+                    <p>记录灵感，保存一切</p>
+                </div>
+            </div>
+            
+            <div class="actions">
+                <button class="btn btn-outline" id="exportBtn">
+                    <i class="fas fa-download"></i> 导出数据
+                </button>
+                <button class="btn btn-primary" id="addNoteBtn">
+                    <i class="fas fa-plus"></i> 新建便签
+                </button>
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
+        
+        <div class="main-layout">
+            <div class="sidebar">
+                <h2 class="sidebar-title">
+                    <i class="fas fa-folder"></i> 分类
+                </h2>
+                <ul class="categories">
+                    <li class="category-item active" data-category="all">
+                        <div class="category-icon">
+                            <i class="fas fa-sticky-note"></i>
+                        </div>
+                        <span>全部便签</span>
+                    </li>
+                    <li class="category-item" data-category="pinned">
+                        <div class="category-icon">
+                            <i class="fas fa-thumbtack"></i>
+                        </div>
+                        <span>已置顶</span>
+                    </li>
+                    <li class="category-item" data-category="work">
+                        <div class="category-icon">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <span>工作</span>
+                    </li>
+                    <li class="category-item" data-category="personal">
+                        <div class="category-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <span>个人</span>
+                    </li>
+                    <li class="category-item" data-category="ideas">
+                        <div class="category-icon">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <span>灵感</span>
+                    </li>
+                </ul>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="totalNotes">12</div>
+                        <div class="stat-label">总便签</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="pinnedNotes">3</div>
+                        <div class="stat-label">已置顶</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="charCount">1,245</div>
+                        <div class="stat-label">总字数</div>
+                    </div>
+                </div>
+            </div>
+            
+            <main>
+                <div class="notes-grid" id="notesGrid">
+                    <!-- 便签卡片将通过JavaScript动态生成 -->
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- 便签编辑器 -->
+    <div class="note-editor-overlay" id="noteEditorOverlay">
+        <div class="note-editor">
+            <div class="editor-header">
+                <input type="text" class="editor-title-input" id="noteTitle" placeholder="请输入标题...">
+                <div class="editor-actions">
+                    <button class="note-action-btn" id="togglePinBtn" title="置顶/取消置顶">
+                        <i class="fas fa-thumbtack"></i>
+                    </button>
+                    <button class="note-action-btn" id="closeEditorBtn">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="editor-content">
+                <div class="content-types">
+                    <button class="content-type-btn active" data-type="text">
+                        <i class="fas fa-font"></i> 文本
+                    </button>
+                    <button class="content-type-btn" data-type="image">
+                        <i class="fas fa-image"></i> 图片
+                    </button>
+                    <button class="content-type-btn" data-type="link">
+                        <i class="fas fa-link"></i> 链接
+                    </button>
+                    <button class="content-type-btn" data-type="list">
+                        <i class="fas fa-list"></i> 列表
+                    </button>
+                </div>
+                
+                <textarea class="editor-textarea" id="noteContent" placeholder="开始记录..."></textarea>
+                
+                <div id="imageUploadArea" style="display: none;">
+                    <p>图片链接:</p>
+                    <input type="text" id="imageUrl" placeholder="https://example.com/image.jpg" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                    <p>或上传图片:</p>
+                    <input type="file" id="imageUpload" accept="image/*" style="margin-bottom: 10px;">
+                    <div id="imagePreview" style="margin-top: 10px;"></div>
+                </div>
+                
+                <div id="linkInputArea" style="display: none;">
+                    <p>链接地址:</p>
+                    <input type="text" id="linkUrl" placeholder="https://example.com" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                    <p>链接描述:</p>
+                    <input type="text" id="linkText" placeholder="链接描述" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                </div>
+                
+                <div id="listInputArea" style="display: none;">
+                    <p>列表项 (每行一项):</p>
+                    <textarea id="listItems" placeholder="项目1\n项目2\n项目3" style="width: 100%; min-height: 150px; padding: 10px; border: 1px solid #ccc; border-radius: 8px;"></textarea>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <p>标签:</p>
+                    <div class="tag-input">
+                        <div id="tagsContainer"></div>
+                        <input type="text" class="tag-input-field" id="tagInput" placeholder="添加标签...">
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <p>便签颜色:</p>
+                    <div class="color-picker">
+                        <div class="color-option active" style="background-color: #ffffff;" data-color="#ffffff"></div>
+                        <div class="color-option" style="background-color: #fef3c7;" data-color="#fef3c7"></div>
+                        <div class="color-option" style="background-color: #d1fae5;" data-color="#d1fae5"></div>
+                        <div class="color-option" style="background-color: #dbeafe;" data-color="#dbeafe"></div>
+                        <div class="color-option" style="background-color: #f3e8ff;" data-color="#f3e8ff"></div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <p>分类:</p>
+                    <select id="noteCategory" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 8px;">
+                        <option value="work">工作</option>
+                        <option value="personal">个人</option>
+                        <option value="ideas">灵感</option>
+                        <option value="other">其他</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="editor-footer">
+                <button class="btn btn-outline" id="cancelEditBtn">
+                    取消
+                </button>
+                <div>
+                    <button class="btn btn-primary" id="saveNoteBtn">
+                        保存便签
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script id="mainScript">
+
+    </script><script src="script.js"></script>
+</body>
+</html>
